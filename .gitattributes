@@ -1,0 +1,10 @@
+# 统一换行符：让仓库里的源码始终以 LF 存储 / 检出
+# 原因：Windows 编辑器默认存 CRLF，会导致 gofmt 报「格式不对」，且不同机器 diff 混乱
+* text=auto
+
+*.go text eol=lf
+*.mod text eol=lf
+*.sum text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
