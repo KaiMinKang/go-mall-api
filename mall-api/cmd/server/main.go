@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"time"
 
+	"mall-api/internal/seed"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -45,6 +47,12 @@ func main() {
 	}
 	log.Println("mysql connected") // ← 验收标准要的日志
 
+	if err := seed.Migrate(db); err != nil {
+		log.Fatalf("建表失败: %v", err)
+	}
+	if err := seed.Seed(db); err != nil {
+		log.Fatalf("写入种子数据失败: %v", err)
+	}
 	// 5. 起 Gin
 	r := gin.Default()
 
