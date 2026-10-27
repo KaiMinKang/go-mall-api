@@ -31,12 +31,12 @@ func (h *GoodsHandler) GetGoodsList(c *gin.Context) {
 
 // 2. 查详情接口
 func (h *GoodsHandler) GetGoodsByID(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil || id <= 0 {
-		response.Fail(c, errcode.CodeInvalidParam, 400, "id参数错误")
+		response.Fail(c, errcode.CodeInvalidParam, 400, "商品ID格式错误")
 		return
 	}
-	goods, err := h.svc.GetGoodsByID(id)
+	goods, err := h.svc.GetGoodsByID(uint(id))
 	if err != nil {
 		// 判断是不是业务层面的"商品不存在"
 		if errors.Is(err, service.ErrGoodsNotFound) {

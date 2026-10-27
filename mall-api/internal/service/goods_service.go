@@ -4,9 +4,10 @@ import (
 	"errors"
 	"mall-api/internal/model"
 	"mall-api/internal/repository"
-
-	"gorm.io/gorm"
 )
+
+// 查询单条商品
+var ErrGoodsNotFound = errors.New("商品不存在")
 
 type GoodsService struct {
 	repo *repository.GoodsRepo
@@ -21,15 +22,12 @@ func (s *GoodsService) GetGoods() ([]model.Goods, error) {
 	return s.repo.GetGoods()
 }
 
-// 查询单条商品
-var ErrGoodsNotFound = errors.New("商品不存在")
-
-func (s *GoodsService) GetGoodsByID(id int) (*model.Goods, error) {
+func (s *GoodsService) GetGoodsByID(id uint) (*model.Goods, error) {
 	goods, err := s.repo.GetGoodsByID(id)
 
 	if err != nil {
 		// 1. 只有明确是"记录没找到"，才翻译成业务错误
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		if errors.Is(err, repository.ErrNotFound) {
 			return nil, ErrGoodsNotFound
 		}
 

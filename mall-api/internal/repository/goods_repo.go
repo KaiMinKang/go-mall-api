@@ -1,10 +1,13 @@
 package repository
 
 import (
+	"errors"
 	"mall-api/internal/model"
 
 	"gorm.io/gorm"
 )
+
+var ErrNotFound = errors.New("记录不存在")
 
 type GoodsRepo struct {
 	db *gorm.DB
@@ -23,10 +26,13 @@ func (r *GoodsRepo) GetGoods() ([]model.Goods, error) {
 	return goods, nil
 }
 
-func (r *GoodsRepo) GetGoodsByID(id int) (*model.Goods, error) {
+func (r *GoodsRepo) GetGoodsByID(id uint) (*model.Goods, error) {
 	var goods model.Goods
 	err := r.db.First(&goods, id).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
 	return &goods, nil

@@ -4,12 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
+	"mall-api/internal/router"
 	"mall-api/internal/seed"
 
-	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
@@ -21,13 +20,7 @@ func main() {
 	cfg := config.Load()
 
 	// 2. 拼 DSN
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		cfg.DBUser,
-		cfg.DBPassword,
-		cfg.DBHost,
-		cfg.DBPort,
-		cfg.DBName,
-	)
+	dsn := config.GetDsn(cfg)
 
 	// 3. 连 MySQL
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
@@ -47,21 +40,19 @@ func main() {
 	}
 	log.Println("mysql connected") // ← 验收标准要的日志
 
+	// 5. 建表 + 写入种子数据
 	if err := seed.Migrate(db); err != nil {
 		log.Fatalf("建表失败: %v", err)
 	}
+
 	if err := seed.Seed(db); err != nil {
 		log.Fatalf("写入种子数据失败: %v", err)
 	}
-	// 5. 起 Gin
-	r := gin.Default()
 
-	// 6. 注册 GET /health
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
-	})
+	// 6. 组装路由
+	r := router.RegisterRouter(db)
 
-	// 7. Run
+	// 7. 启动
 	if err := r.Run(fmt.Sprintf(":%d", cfg.ServerPort)); err != nil {
 		log.Fatalf("服务器启动失败: %v", err)
 	}
